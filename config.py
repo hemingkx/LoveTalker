@@ -24,8 +24,8 @@ num_layers = 4
 maxlen = 60  # 超过这个长度的之后字被丢弃，小于这个长度的在前面补空格
 max_gen_len = 80  # 生成情话最长长度
 model_path = 'checkpoints/love_word_0.pth'  # 预训练模型路径 'checkpoints/love_word_19.pth'
-prefix_words = None  # 不是情话的组成部分，用来控制生成情话的意境，如'我爱你'
-start_words = '希望'  # 情话的前缀部分
+prefix_words = None  # 生成情话的语境，如'我爱你'
+start_words = '希望'  # 情话的开头部分
 model_prefix = 'checkpoints/love_word'  # 模型保存路径
 
 gpu = '1'
