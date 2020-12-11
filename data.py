@@ -1,23 +1,24 @@
 import os
 import json
+import config
 import pandas as pd
-from config import Config
 import numpy as np
 
 
-def parse_raw_data(file='./love_word/data.json'):
-    if not os.path.exists(file):
-        data = pd.read_csv("./love_word/data.csv", header=0)
+def parse_raw_data():
+    """返回情话的句子列表"""
+    # 如果没有json文件，则从csv文件中生成json文件
+    if not os.path.exists(config.data_path):
+        data = pd.read_csv(config.origin_data_path, header=0)
         sents = data["微博正文"]
         sents = sents.tolist()
         # 按行写文件
         for sent in sents:
-            with open(Config.data_path, 'a+', encoding='utf-8') as f:
+            with open(config.data_path, 'a+', encoding='utf-8') as f:
                 line = json.dumps(sent, ensure_ascii=False)
                 f.write(line + '\n')
-    # print file
     # 由于文件中有多行，直接读取会出现错误，因此一行一行读取
-    file = open(Config.data_path, 'r', encoding='utf-8')
+    file = open(config.data_path, 'r', encoding='utf-8')
     sents = []
     for sent in file.readlines():
         dic = json.loads(sent)
@@ -102,20 +103,19 @@ def pad_sequences(sequences,
     return x
 
 
-def get_data(opt):
+def get_data():
     """
-    @param opt 配置选项 Config对象
     @return word2ix: dict,每个字对应的序号，形如u'月'->100
     @return ix2word: dict,每个序号对应的字，形如'100'->u'月'
-    @return data: numpy数组，每一行是一首诗对应的字的下标
+    @return data: numpy数组，每一行是一句情话对应的字的下标
     """
-    if os.path.exists(opt.pickle_path):
-        data = np.load(opt.pickle_path, allow_pickle=True)
+    if os.path.exists(config.pickle_path):
+        data = np.load(config.pickle_path, allow_pickle=True)
         data, word2ix, ix2word = data['data'], data['word2ix'].item(), data['ix2word'].item()
         return data, word2ix, ix2word
 
     # 如果没有处理好的二进制文件，则处理原始的json文件
-    data = parse_raw_data(opt.data_path)
+    data = parse_raw_data()
     # 每一个字
     words = {_word for _sentence in data for _word in _sentence}
     word2ix = {_word: _ix for _ix, _word in enumerate(words)}
@@ -125,24 +125,24 @@ def get_data(opt):
     word2ix['</s>'] = len(word2ix)  # 空格
     ix2word = {_ix: _word for _word, _ix in list(word2ix.items())}
 
-    # 为每首诗歌加上起始符和终止符
+    # 为每句情话加上起始符和终止符
     for i in range(len(data)):
         data[i] = ["<START>"] + list(data[i]) + ["<EOP>"]
 
-    # 将每首诗歌保存的内容由‘字’变成‘数’
+    # 将每句情话保存的内容由‘字’变成‘数’
     # 形如[春,江,花,月,夜]变成[1,2,3,4,5]
     new_data = [[word2ix[_word] for _word in _sentence]
                 for _sentence in data]
 
-    # 诗歌长度不够opt.maxlen的在前面补空格，超过的，删除末尾的
+    # 情话长度不够opt.maxlen的在前面补空格，超过的，删除末尾的
     pad_data = pad_sequences(new_data,
-                             maxlen=opt.maxlen,
+                             maxlen=config.maxlen,
                              padding='pre',
                              truncating='post',
                              value=len(word2ix) - 1)
 
     # 保存成二进制文件
-    np.savez_compressed(opt.pickle_path,
+    np.savez_compressed(config.pickle_path,
                         data=pad_data,
                         word2ix=word2ix,
                         ix2word=ix2word)
@@ -150,5 +150,5 @@ def get_data(opt):
 
 
 if __name__ == "__main__":
-    pad_data, word2ix, ix2word = get_data(Config)
+    pad_data, word2ix, ix2word = get_data()
     print(word2ix)

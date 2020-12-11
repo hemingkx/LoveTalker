@@ -1,15 +1,14 @@
-# coding:utf8
 import sys
-import tqdm
+import config
+from tqdm import tqdm
 from data import get_data
 from model import PoetryModel
-from config import Config
+
 import torch
 from torch import nn
 from torch import optim
 from torch.utils.data import DataLoader
-
-opt = Config()
+from torch.optim.lr_scheduler import StepLR
 
 
 def generate(model, start_words, ix2word, word2ix, prefix_words=None):
@@ -22,8 +21,7 @@ def generate(model, start_words, ix2word, word2ix, prefix_words=None):
     start_word_len = len(start_words)
     # 手动设置第一个词为<START>
     input = torch.Tensor([word2ix['<START>']]).view(1, 1).long()
-    if opt.use_gpu:
-        input = input.cuda()
+    input = input.to(config.device)
     hidden = None
 
     if prefix_words:
@@ -31,7 +29,7 @@ def generate(model, start_words, ix2word, word2ix, prefix_words=None):
             output, hidden = model(input, hidden)
             input = input.data.new([word2ix[word]]).view(1, 1)
 
-    for i in range(opt.max_gen_len):
+    for i in range(config.max_gen_len):
         output, hidden = model(input, hidden)
 
         if i < start_word_len:
@@ -48,32 +46,25 @@ def generate(model, start_words, ix2word, word2ix, prefix_words=None):
     return results
 
 
-def train(**kwargs):
-    for k, v in kwargs.items():
-        setattr(opt, k, v)
-
-    opt.device = torch.device('cuda:3') if opt.use_gpu else torch.device('cpu')
-    device = opt.device
-
+def train():
     # 获取数据
-    data, word2ix, ix2word = get_data(opt)
+    data, word2ix, ix2word = get_data()
     data = torch.from_numpy(data)
-    dataloader = DataLoader(data, batch_size=opt.batch_size, shuffle=True, num_workers=1)
+    dataloader = DataLoader(data, batch_size=config.batch_size, shuffle=True, num_workers=1)
 
     # 模型定义
-    model = PoetryModel(len(word2ix), Config.embedding_dim, Config.hidden_dim)
-    optimizer = optim.Adam(model.parameters(), lr=opt.lr)
+    model = PoetryModel(len(word2ix), config.embedding_dim, config.hidden_dim, config.num_layers)
+    optimizer = optim.Adam(model.parameters(), lr=config.lr, weight_decay=config.weight_decay)
+    scheduler = StepLR(optimizer, step_size=config.lr_step, gamma=config.lr_gamma)
     criterion = nn.CrossEntropyLoss()
-    if opt.model_path:
-        model.load_state_dict(torch.load(opt.model_path))
-    model.to(device)
+    model.to(config.device)
 
-    for epoch in range(opt.epoch):
+    for epoch in range(config.epoch):
         total_loss = 0
-        for ii, data_ in tqdm.tqdm(enumerate(dataloader)):
+        for data_ in tqdm(dataloader):
             # 训练
             data_ = data_.long().transpose(1, 0).contiguous()
-            data_ = data_.to(device)
+            data_ = data_.to(config.device)
             optimizer.zero_grad()
             input_, target = data_[:-1, :], data_[1:, :]
             output, _ = model(input_)
@@ -81,47 +72,38 @@ def train(**kwargs):
             loss.backward()
             optimizer.step()
             total_loss += loss.item()
+        scheduler.step()
         print("epoch: ", epoch, "loss: ", total_loss / len(dataloader))
-        torch.save(model.state_dict(), '%s_%s.pth' % (opt.model_prefix, epoch))
+        torch.save(model.state_dict(), '%s_%s.pth' % (config.model_prefix, epoch))
 
 
-def gen(**kwargs):
-    """
-    提供命令行接口，用以生成相应的情话
-    """
-
-    for k, v in kwargs.items():
-        setattr(opt, k, v)
-    data, word2ix, ix2word = get_data(opt)
-    model = PoetryModel(len(word2ix), Config.embedding_dim, Config.hidden_dim)
-    map_location = lambda s, l: s
-    state_dict = torch.load(opt.model_path, map_location=map_location)
+def gen():
+    """生成相应的情话"""
+    data, word2ix, ix2word = get_data()
+    model = PoetryModel(len(word2ix), config.embedding_dim, config.hidden_dim, config.num_layers)
+    state_dict = torch.load(config.model_path, map_location=lambda s, l: s)
     model.load_state_dict(state_dict)
-
-    if opt.use_gpu:
-        model.cuda()
+    model.to(config.device)
 
     # python2和python3 字符串兼容
     if sys.version_info.major == 3:
-        if opt.start_words.isprintable():
-            start_words = opt.start_words
-            prefix_words = opt.prefix_words if opt.prefix_words else None
+        if config.start_words.isprintable():
+            start_words = config.start_words
+            prefix_words = config.prefix_words if config.prefix_words else None
         else:
-            start_words = opt.start_words.encode('ascii', 'surrogateescape').decode('utf8')
-            prefix_words = opt.prefix_words.encode('ascii', 'surrogateescape').decode(
-                'utf8') if opt.prefix_words else None
+            start_words = config.start_words.encode('ascii', 'surrogateescape').decode('utf8')
+            prefix_words = config.prefix_words.encode('ascii', 'surrogateescape').decode(
+                'utf8') if config.prefix_words else None
     else:
-        start_words = opt.start_words.decode('utf8')
-        prefix_words = opt.prefix_words.decode('utf8') if opt.prefix_words else None
+        start_words = config.start_words.decode('utf8')
+        prefix_words = config.prefix_words.decode('utf8') if config.prefix_words else None
 
-    start_words = start_words.replace(',', u'，') \
-        .replace('.', u'。') \
-        .replace('?', u'？')
+    start_words = start_words.replace(',', u'，').replace('.', u'。').replace('?', u'？')
 
     result = generate(model, start_words, ix2word, word2ix, prefix_words)
     print(''.join(result))
 
 
 if __name__ == '__main__':
-    # train()
+    train()
     gen()
