@@ -8,7 +8,7 @@ import numpy as np
 import tensorflow as tf
 
 # 设置GPU
-os.environ['CUDA_VISIBLE_DEVICES'] = "3"
+os.environ['CUDA_VISIBLE_DEVICES'] = "1"
 
 
 class Evaluate(tf.keras.callbacks.Callback):

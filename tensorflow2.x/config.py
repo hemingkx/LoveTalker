@@ -8,7 +8,7 @@ lr = 1e-3
 # 训练轮次
 epoch = 50
 # batch size
-batch_size = 128
+batch_size = 32
 
 # 模型参数
 embedding_dim = 256
