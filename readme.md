@@ -1,6 +1,9 @@
 # LoveTalker
 
-本项目是基于charRNN的情话生成工具，适合新手入门。代码基于 [《深度学习框架PyTorch：入门与实践》](https://github.com/chenyuntc/pytorch-book) 编写。
+本项目是基于charRNN的情话生成工具，适合新手入门。
+
+- pytorch代码位于./pytorch目录下，基于 [《深度学习框架PyTorch：入门与实践》](https://github.com/chenyuntc/pytorch-book) 编写。
+- tensorflow 2.x代码位于./tensorflow2.x目录下。
 
 ## Function
 
@@ -27,10 +30,26 @@ output：我想你一定很忙，所以你只看前三个字就好。
 
 ## Requirements
 
-代码基于pytorch实现，主要package配置包括：
+#### 1.pytorch
+
+pytorch实现的主要package配置包括：
 
 - tqdm
+- pandas
 - pytorch >= 1.5.1
+
+安装环境可以运行：
+
+```
+pip install -r requirements.txt
+```
+
+#### 2.tensorflow
+
+tensorflow2.x实现的主要package配置包括：
+
+- pandas
+- tensorflow-gpu >= 2.2.0
 
 安装环境可以运行：
 
