@@ -69,10 +69,10 @@ def gen(model_id, start=''):
         else:
             token_ids.append(target)
     result = [id2word[w] for w in token_ids[1:]]
-    print(result)
+    print(''.join(result))
 
 
 if __name__ == '__main__':
-    train()
-    # gen(3, '希望')
+    # train()
+    gen(15, '我爱你')
 
