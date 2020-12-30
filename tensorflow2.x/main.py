@@ -44,16 +44,17 @@ def train():
               callbacks=[Evaluate(model)])
 
 
-def gen(model_id, start=''):
+def gen(model_id, prefix='', start=''):
     """
     generate love words
     :param model_id: model of epoch model_id
+    :param prefix: prefix of love words
     :param start: beginning of love words
     :return: love words
     """
     model = load_model('./checkpoints/model_{}.h5'.format(model_id))
     data, word2id, id2word = get_data()
-    start = ["<START>"] + list(start)
+    start = ["<START>"] + list(prefix) + list(start)
     # word2id
     token_ids = [word2id[w] for w in start]
 
@@ -68,11 +69,11 @@ def gen(model_id, start=''):
             break
         else:
             token_ids.append(target)
-    result = [id2word[w] for w in token_ids[1:]]
+    result = [id2word[w] for w in token_ids[len(prefix) + 1:]]
     print(''.join(result))
 
 
 if __name__ == '__main__':
     # train()
-    gen(15, '我爱你')
+    gen(19, config.prefix_words, config.start_words)
 
