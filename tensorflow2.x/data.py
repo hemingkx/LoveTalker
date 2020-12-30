@@ -3,7 +3,6 @@ import json
 import config
 import pandas as pd
 import numpy as np
-import tensorflow as tf
 
 
 def parse_raw_data():
@@ -150,34 +149,9 @@ def get_data():
     return pad_data, word2ix, ix2word
 
 
-def get_batch(data, shuffle=True):
-    """
-    get batch data
-    :param data: pad_data
-    :param shuffle: shuffle or not
-    :return: batch data
-    """
-    if shuffle:
-        np.random.shuffle(data)
-    batch_size = config.batch_size
-    # 迭代一个epoch，每次yield一个batch
-    for i in range(batch_size, len(data), batch_size):
-        # yield x,y
-        yield data[i-batch_size:i, :-1], tf.one_hot(data[i-batch_size:i, 1:], config.vocab_size)
-
-
-def for_fit(data, shuffle=True):
-    """
-    创建一个生成器，用于训练
-    """
-    # 死循环，当数据训练一个epoch之后，重新迭代数据
-    while True:
-        # 利用生成器产生数据
-        yield from get_batch(data, shuffle)
-
-
 if __name__ == "__main__":
     pad_data, word2ix, ix2word = get_data()
     print(len(pad_data[0]))
     print(pad_data[0])
-    print(word2ix)
+    print(ix2word[6495])
+    print(ix2word[6496])

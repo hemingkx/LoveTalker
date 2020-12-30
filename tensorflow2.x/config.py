@@ -8,12 +8,11 @@ lr = 1e-3
 # 训练轮次
 epoch = 50
 # batch size
-batch_size = 32
+batch_size = 128
 
 # 模型参数
 embedding_dim = 256
 hidden_dim = 512
-num_layers = 4
 
 # 情话生成设置
 vocab_size = 6497
