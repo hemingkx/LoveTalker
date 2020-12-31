@@ -71,3 +71,10 @@ python main.py
 
 模型运行结束后，每个epoch的模型保存在./checkpoints下。
 
+## Pretrained Model
+
+Tensorflow 2.x版本的Pretrained Model地址：
+
+链接: https://pan.baidu.com/s/1jJdmOrDicAI15mVOwlhuYw  密码: 7jdt
+
+可下载后，选用训练特定epoch后保存的模型生成情话，测试模型性能。

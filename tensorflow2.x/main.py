@@ -75,5 +75,5 @@ def gen(model_id, prefix='', start=''):
 
 if __name__ == '__main__':
     # train()
-    gen(19, config.prefix_words, config.start_words)
+    gen(49, config.prefix_words, config.start_words)
 

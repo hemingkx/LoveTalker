@@ -19,5 +19,5 @@ vocab_size = 6497
 maxlen = 60  # 超过这个长度的之后字被丢弃，小于这个长度的在前面补空格
 max_gen_len = 80  # 生成情话最长长度
 prefix_words = '我的胸口有点疼，因为你堵在我的心口了。'  # 生成情话的语境，如'我爱你'
-start_words = '太阳'  # 情话的开头部分
+start_words = '我爱你'  # 情话的开头部分
 model_prefix = 'checkpoints/love_word'  # 模型保存路径
